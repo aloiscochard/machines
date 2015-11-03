@@ -113,6 +113,12 @@ filtered p = repeatedly $ do
   i <- await
   when (p i) $ yield i
 
+-- | A 'Process' that collect only non-empty elements.
+collected :: Process (Maybe a) a
+collected = repeatedly $ do
+  i <- await
+  maybe (return ()) yield i
+
 -- | A 'Process' that drops the first @n@, then repeats the rest.
 dropping :: Int -> Process a a
 dropping n = before echo $ replicateM_ n await
@@ -140,7 +146,6 @@ buffered = repeatedly . go [] where
   go acc n = do
     i <- await <|> yield (reverse acc) *> stop
     go (i:acc) $! n-1
-
 
 -- | Build a new 'Machine' by adding a 'Process' to the output of an old 'Machine'
 --
